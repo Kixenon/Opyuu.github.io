@@ -32,7 +32,7 @@ game = new Game();
 gameRunning = false; //temp fix
 
 function play() {
-    das = 5; // DAS in frames
+    das = controls["DAS"]; // DAS in frames
     sdARR = 0;
     leftDas = 0;
     rightDas = 0;
@@ -144,12 +144,12 @@ function play() {
 
 function load_settings(){
     controls = localStorage.getItem("controls");
-    if (Object.keys(controls).length !== 0){ 
+    if (controls !== null){ 
         controls = JSON.parse(controls);
-        console.log("loaded controls")
+        console.log("loaded controls");
     }
     else{ // If no controls are stored, use default
-        console.log("Default controls used")
+        console.log("Default controls used");
         controls = {   
             "DAS": 5,
             "SDARR": 0, // Change to regular ARR later?
@@ -165,7 +165,6 @@ function load_settings(){
             "Hard_Drop": 'Space',
             "Reset": 'KeyR'
         };
-        console.log("reset to default")
     }
 }
 
@@ -181,6 +180,7 @@ function settings(){
     } else{ // Close settings
         showSetting = false;
         menu.style.display = "none";
+        save_numbers();
         save_settings();
     }
 
@@ -191,8 +191,6 @@ function settings(){
     
     document.getElementById('DAS').value = controls["DAS"]; // Displays current DAS
     document.getElementById('SDARR').value = controls["SDARR"]; // Displays current SD ARR
-    // When closing, make it run function that saves current control to local
-    
 }
 
 function change(button){
@@ -224,6 +222,11 @@ function change(button){
     document.getElementsByName(button.name)[0].innerHTML = "enter something";
 }
 
+
+function save_numbers(){
+    controls["DAS"] = document.getElementById("DAS").value;
+    controls["SDARR"] = document.getElementById("SDARR").value
+}
 
 function on_load(){
     load_settings();
