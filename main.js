@@ -5,15 +5,20 @@ playButton = document.getElementById("start_button");
 var clearTextTimeout;
 var clearPCTimeout;
 var clearComboTimeout;
+var dasID = 0; // DAS ID FOR DAS
+var lastPressed = "";
+var leftDasTimer
+var rightDasTimer
+var ignoreLeft = false;
+var ignoreRight = false;
 var keys;
 var tookAction;
 var softDrop;
-var leftDas;
-var rightDas;
 var das;
 var showSetting = false;
 var controls = {   
     "DAS": 5,
+    "ARR": 0,
     "SDARR": 0, // Change to regular ARR later?
     "Move_Down": 'ArrowDown',
     "Move_Left": 'ArrowLeft',
@@ -34,8 +39,6 @@ gameRunning = false; //temp fix
 function play() {
     das = controls["DAS"]; // DAS in frames
     sdARR = 0;
-    leftDas = 0;
-    rightDas = 0;
     game.init();
     // Game loop?
     // Key down
@@ -44,33 +47,69 @@ function play() {
 
 
     document.addEventListener('keydown', (event) => {
+        if (showSetting) return;
         event.preventDefault();
         
         tookAction = (tookAction || []);
         
         // Update the keys currently held 
         keys = (keys || []);
-        if (showSetting) return; // If settings menu is shown do not take inputs
         keys[event.code] = true;  
         
+        // If Left is held & right is pressed, ignore left
+        // Ignore left if left is held already
+
         if (event.code == controls['Move_Down'] && tookAction[controls['Move_Down']] !== true){
             softDrop = 0
         }
-        
+
+        if (event.code == controls['Move_Right'] && keys[controls['Move_Left']]){ignoreLeft = true;}else{ignoreLeft = false;} // If Left key is held & Right key is pressed, ignore all left key changes
+        if (event.code == controls['Move_Left'] && keys[controls['Move_Right']]){ignoreRight = true;}else{ignoreRight = false;} // If Right is held & Left is pressed, ignore all right changes
+
+        if (event.code == controls['Move_Left'] && ignoreLeft == false){
+            
+            lastPressed = "Left";
+            clearTimeout(rightDasTimer);
+            clearTimeout(leftDasTimer);
+        }
+
+        if (event.code == controls['Move_Right'] && ignoreRight == false){
+            lastPressed = "Right";
+            clearTimeout(leftDasTimer);
+            clearTimeout(rightDasTimer);
+        }
+
+
     }, false);
 
     document.addEventListener('keyup', (event) => {
+        if (showSetting) return;
         tookAction[event.code] = false;
         keys[event.code] = false;
         
         if (event.code == controls['Move_Left'] || event.code == controls['Move_Right']){
-            rightDas = 0;
-            leftDas = 0;
+            tookAction["ArrLeft"] = false;
+            tookAction["ArrRight"] = false;
+            dasID++;
         }
+
+        if (event.code == controls['Move_Left'] && keys[controls['Move_Right']]){ // Left is released but right is still held
+            lastPressed = "Right";
+            dasID++;
+        }
+
+        if (event.code == controls['Move_Right'] && keys[controls['Move_Left']]){ // Right is released but left is still held
+            lastPressed = "Left";
+            dasID++;
+        }
+        
+
+
     }, false);
 
     window.requestAnimationFrame(gameLoop);
     function gameLoop(){
+
         // Only carry an action if tookaction is false and event code is true. Set keydown to false after carrying out the action
         if (keys){
             // Hard drop first
@@ -78,11 +117,28 @@ function play() {
                 while(game.moveDown()){}
                 game.placePiece();
                 tookAction[controls['Hard_Drop']] = true;
+                console.log("hard dropped---------")
+                // tookAction['ArrLeft'] = false;
+                // tookAction['ArrRight'] = false;
             }
             // Hold Second
-            if(tookAction[controls['Hold']] !== true && keys[controls['Hold']]) {game.holdPiece(); tookAction[controls['Hold']] = true;}
+            if(tookAction[controls['Hold']] !== true && keys[controls['Hold']]) {
+                game.holdPiece(); tookAction[controls['Hold']] = true;
+                tookAction['ArrLeft'] = false;
+                tookAction['ArrRight'] = false;
+            }
 
-            // Soft Drop Thirds
+
+
+            // DAS third
+            if(keys[controls['Move_Left']]){
+                newDasLeft(dasID);
+            }
+            if(keys[controls['Move_Right']]){
+                newDasRight(dasID);
+            }
+
+            // Soft Drop Fourth
             if(keys[controls['Move_Down']]) {
                 softDrop++;
                 if (softDrop >= sdARR){ // 
@@ -92,27 +148,26 @@ function play() {
                     game.moveDown();
                     softDrop = 0; // Set reset Soft drop
                 }
+                console.log("soft dropped")
             }
-
-            // DAS fourth
-            if(keys[controls['Move_Left']]){
-                leftDas++;
-                if (leftDas > rightDas && rightDas >= das){ // If DAS left is possbile but DAS right was activated later then DAS right
-                    while(game.moveRight()){}
-                }
-                if (leftDas >= das && !keys[controls['Move_Right']]){
-                    while(game.moveLeft()){}
-                }
-            }
-            if(keys[controls['Move_Right']]){
-                rightDas++;
-                if (rightDas > leftDas && leftDas >= das){ // If DAS right is possible but DAS left was activated later then DAS left
-                    while(game.moveLeft()){}
-                }
-                if (rightDas >= das && !keys[controls['Move_Left']]){
-                    while(game.moveRight()){}
-                }
-            }
+            // if(keys[controls['Move_Left']]){
+            //     leftDas++;
+            //     if (leftDas > rightDas && rightDas >= das){ // If DAS left is possbile but DAS right was activated later then DAS right
+            //         while(game.moveRight()){}
+            //     }
+            //     if (leftDas >= das && !keys[controls['Move_Right']]){
+            //         while(game.moveLeft()){}
+            //     }
+            // }
+            // if(keys[controls['Move_Right']]){
+            //     rightDas++;
+            //     if (rightDas > leftDas && leftDas >= das){ // If DAS right is possible but DAS left was activated later then DAS left
+            //         while(game.moveLeft()){}
+            //     }
+            //     if (rightDas >= das && !keys[controls['Move_Left']]){
+            //         while(game.moveRight()){}
+            //     }
+            // }
 
             // Movement 
             if(tookAction[controls['Move_Left']] !== true && keys[controls['Move_Left']]) {game.moveLeft(); tookAction[controls['Move_Left']] = true;}
@@ -134,7 +189,9 @@ function play() {
             // When left DAS is activated, DAS right will still activate witohut DAS left being cancelled
         }
         game.update_render();
+        console.log("frame updated")
         window.requestAnimationFrame(gameLoop);
+        
     }
 
 
@@ -152,6 +209,7 @@ function load_settings(){
         console.log("Default controls used");
         controls = {   
             "DAS": 5,
+            "ARR": 0,
             "SDARR": 0, // Change to regular ARR later?
             "Move_Down": 'ArrowDown',
             "Move_Left": 'ArrowLeft',
@@ -190,6 +248,8 @@ function settings(){
     }
     
     document.getElementById('DAS').value = controls["DAS"]; // Displays current DAS
+    document.getElementById('DAS').removeAttribute("readonly"); // Attempt at fixing input box bug
+    document.getElementById('ARR').value = controls["ARR"]; // Displays current ARR
     document.getElementById('SDARR').value = controls["SDARR"]; // Displays current SD ARR
 }
 
@@ -225,6 +285,7 @@ function change(button){
 
 function save_numbers(){
     controls["DAS"] = document.getElementById("DAS").value;
+    controls["ARR"] = document.getElementById("ARR").value;
     controls["SDARR"] = document.getElementById("SDARR").value
 }
 
@@ -304,12 +365,62 @@ function parse_fumen(fumen){
     }
 }
 
-function arrLeft(ARR){
+function arrLeft(){
+    // Means that DAS left is possible
+
+    // Check if ARR is 0, then whoosh the piece
+    if (controls["ARR"] == 0){
+        while(game.moveLeft()){}
+    }
+
+    if(tookAction["ArrLeft"] == true) return;
     let loop = setInterval(function() {
-        if (das > controls["DAS"]){ // IF ARR IS POSSIBLE
+        if (keys[controls["Move_Left"]] && lastPressed == "Left"){
             game.moveLeft();
-        }else{ // IF ARR IS NOT POSSIBLE
+        }
+        else{
             clearInterval(loop);
         }
-    }, ARR);
+    }, controls["ARR"]);
+    tookAction["ArrLeft"] = true;
+}
+
+function arrRight(){
+
+    if (controls["ARR"] == 0){
+        while(game.moveRight()){}
+    }
+
+    if(tookAction["ArrRight"] == true) return;
+    let loop = setInterval(() => {
+        if (keys[controls["Move_Right"]] && lastPressed == "Right"){
+            game.moveRight();
+        }
+        else{
+            clearInterval(loop);
+        }
+    }, controls["ARR"]);
+    tookAction["ArrRight"] = true;
+}
+
+function newDasLeft(id){
+    leftDasTimer = setTimeout(()=>{
+        if (dasID == id){
+            if (lastPressed == "Left"){
+                arrLeft();
+            }
+        }
+    }, controls["DAS"]);
+}
+
+function newDasRight(id){
+    rightDasTimer = setTimeout(()=>{
+        if (dasID == id){
+            if(lastPressed == "Right"){
+                console.log("Attempting arr")
+                arrRight();
+            }
+        }
+    }, controls["DAS"]);
+
 }
