@@ -21,6 +21,16 @@ body {
     align-items: center;
 }
 
+#l_stage{
+    margin-right: 30px;
+}
+
+#l_stage #text{
+    font-size: 30px;
+    text-align: center;
+    margin: none;
+}
+
 .button{
     display: flex;
     flex-direction: column;

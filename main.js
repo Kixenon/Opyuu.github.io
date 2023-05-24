@@ -117,7 +117,6 @@ function play() {
                 while(game.moveDown()){}
                 game.placePiece();
                 tookAction[controls['Hard_Drop']] = true;
-                console.log("hard dropped---------")
                 // tookAction['ArrLeft'] = false;
                 // tookAction['ArrRight'] = false;
             }
@@ -148,7 +147,6 @@ function play() {
                     game.moveDown();
                     softDrop = 0; // Set reset Soft drop
                 }
-                console.log("soft dropped")
             }
             // if(keys[controls['Move_Left']]){
             //     leftDas++;
@@ -189,7 +187,6 @@ function play() {
             // When left DAS is activated, DAS right will still activate witohut DAS left being cancelled
         }
         game.update_render();
-        console.log("frame updated")
         window.requestAnimationFrame(gameLoop);
         
     }
@@ -208,8 +205,8 @@ function load_settings(){
     else{ // If no controls are stored, use default
         console.log("Default controls used");
         controls = {   
-            "DAS": 5,
-            "ARR": 0,
+            "DAS": 100,
+            "ARR": 30,
             "SDARR": 0, // Change to regular ARR later?
             "Move_Down": 'ArrowDown',
             "Move_Left": 'ArrowLeft',
@@ -337,27 +334,21 @@ function parse_fumen(fumen){
     splitFumen = splitFumen.substring(0, splitFumen.length - 3); // Remove piece appended at end
     splitFumen = splitFumen.replace(/[?]/g, ''); // Remove ? separators
     pairs = splitFumen.match(/.{2}/g); // Split fumen into pairs
-    console.log(pairs);
-    console.log(pairs.length)
     for (let i = 0; i < pairs.length; i++){ // Loop through pairs
         value1 = ENCODE_TABLE.indexOf(pairs[i][0]);
         value2 = ENCODE_TABLE.indexOf(pairs[i][1]);
 
-        console.log(pairs[i][0], pairs[i][1]);
         // Calculate num & the corresponding piece values
         let num = value1 + value2 * 64;
-        console.log(value1, value2, num);
 
         pieceType = Math.abs(Math.floor(num / 240 - 8));
         pieceCount = num % 240 + 1;
-        //console.log (pieceCount);
         
         // Place piece onto board
         for (let j = 0; j < pieceCount; j++){
             let newPos = j + minoCounter;
             let x = newPos % 10;
             let y = 22 - Math.floor(newPos / 10);
-            //console.log(x,y,pieceType)
             if(y < 0) return; // Last piece
             game.board[x][y] = FUMEN_PIECE[pieceType];
         }
@@ -417,7 +408,6 @@ function newDasRight(id){
     rightDasTimer = setTimeout(()=>{
         if (dasID == id){
             if(lastPressed == "Right"){
-                console.log("Attempting arr")
                 arrRight();
             }
         }
