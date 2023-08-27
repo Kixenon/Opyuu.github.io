@@ -6,8 +6,8 @@
 }
 
 body {
-    background-color: rgb(0, 0, 0);
-    overflow:hidden;
+    background-color: black; 
+    overflow: hidden;
 }
 
 #stage {
@@ -37,7 +37,7 @@ body {
     justify-content: center;
     align-items: center;
 
-    background-color: grey;
+    background-color: #4455dd; /* Unit */
     color: white;
     font-size: 20px;
 
@@ -45,12 +45,13 @@ body {
     height: 80px;
 
     border: none;
+    border-radius: 7px;
 
     cursor: pointer;
 }
 
 .button_hover:hover{
-    background-color: darkgrey;
+    background-color: #33aaee; /* Ichika */
     color: black;
 }
 
@@ -61,7 +62,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: lightgray;
+    background-color: #ee6666; /* Honami */
     width: 60vw;
     height: 80vh;
     overflow-y: auto;
@@ -74,11 +75,33 @@ body {
 
 .controls{
     color:black;
+    background-color: #bbde22; /* Shiho */
+    border: none;
+    border-radius: 4px;
+    height: 15px;
+}
+
+.controls:hover{
+    background-color: #ffdd45; /* Saki */
+    cursor: pointer;
 }
 
 .labels{
     color: black;
     margin-left: 5%;
+}
+
+button.labels{
+    background-color: #bbde22; 
+    border: none;
+    border-radius: 4px;
+    height: 40px;
+    width: auto;
+}
+
+button.labels:hover{
+    background-color: #ffdd45;
+    cursor: pointer;
 }
 
 .clear{
